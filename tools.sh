@@ -5,9 +5,11 @@
 ############### Tools from pip ###############
 
 # New python virtualenv for pwn
+export PATH=~/.local/bin:$PATH
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
 export WORKON_HOME=$HOME/.virtualenvs
 export PROJECT_HOME=$HOME/Devel
-source /usr/local/bin/virtualenvwrapper.sh
+source ~/.local/bin/virtualenvwrapper.sh
 mkvirtualenv pwn
 workon pwn
 pip install --force-reinstall \
