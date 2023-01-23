@@ -24,29 +24,3 @@ chmod +x tools.sh
 echo "Things after installation: "
 echo "run 'source ~/.bashrc' to update bash configuration"
 echo "run ':PlugInstall' inside vim to install the plugins"
-
-# # arm&mips运行库
-# sudo apt-get install -y \
-#     libc6-arm64-cross \
-#     libc6-armel-cross \
-#     libc6-armhf-cross \
-#     libc6-mips-cross \
-#     libc6-mips32-mips64-cross \
-#     libc6-mips32-mips64el-cross \
-#     libc6-mips64-cross \
-#     libc6-mips64-mips-cross \
-#     libc6-mips64-mipsel-cross \
-#     libc6-mips64el-cross \
-#     libc6-mipsel-cross \
-#     libc6-mipsn32-mips-cross \
-#     libc6-mipsn32-mips64-cross \
-#     libc6-mipsn32-mips64el-cross \
-#     libc6-mipsn32-mipsel-cross
-
-# # binutils
-# sudo apt-get install -y \
-#     binutils-mips-linux-gnu-dbg/bionic-security \
-#     binutils-mipsel-linux-gnu-dbg/bionic-security \
-#     binutils-mips64-linux-gnuabi64-dbg/bionic-security \
-#     binutils-mips64el-linux-gnuabi64-dbg/bionic-security \
-#     binutils-arm-linux-gnueabi-dbg/bionic-security
