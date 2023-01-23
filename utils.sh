@@ -147,5 +147,15 @@ pip install virtualenvwrapper
 
 ############### Other utils setup ###############
 
-# Install plugin for Vim
+# Plugin for Vim
 curl -fLo $HOME/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+# Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+rm get-docker.sh
+# Add to group
+sudo groupadd docker
+sudo usermod -aG docker $USER
+newgrp docker
+newgrp $USER

@@ -30,4 +30,4 @@ chmod +x tools.sh
 
 echo "Things to do after installation: "
 echo "run 'source ~/.bashrc' to update bash configuration"
-echo "run ':PlugInstall' inside vim to install the plugins"
+echo "run 'vim -c \":PlugInstall\"' to install the plugins"
