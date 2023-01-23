@@ -82,8 +82,12 @@ sudo make
 sudo cp bin/rappel /usr/bin/rappel
 
 # rp++
-sudo wget https://github.com/0vercl0k/rp/releases/download/v2.0.2/rp-lin-x64 -O /usr/bin/rp++
-sudo chmod +x /usr/bin/rp++
+sudo git clone https://github.com/0vercl0k/rp.git /opt/rp++
+cd /opt/rp++/src/build
+sudo chmod u+x ./build-release.sh
+sudo ./build-release.sh
+sudo cp ./rp-lin /usr/bin/rp-lin
+sudo ln -sf /usr/bin/rp-lin /usr/bin/rp++
 
 # seccomp-tools
 sudo gem install seccomp-tools

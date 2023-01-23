@@ -118,6 +118,7 @@ sudo apt install -y \
     sudo \
     tmux \
     tree \
+    valgrind \
     vim \
     whiptail \
     zsh \
