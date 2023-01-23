@@ -7,5 +7,5 @@
 cd config/
 for file in *
 do
-    ln -sf $PWD/$file ~/."$file"
+    ln -sf $PWD/$file $HOME/."$file"
 done

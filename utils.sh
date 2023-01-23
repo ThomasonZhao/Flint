@@ -23,14 +23,14 @@ then
     echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse"   >> /etc/apt/sources.list
 fi
 
-apt update
-apt upgrade -y
+sudo apt update
+sudo apt upgrade -y
 
 # Enable 32 bit support
-dpkg --add-architecture i386
+sudo dpkg --add-architecture i386
 
 # Environment for PWN and C/C++ development
-apt install -y \
+sudo apt install -y \
     autoconf \
     bc \
     bison \
@@ -72,7 +72,7 @@ apt install -y \
     --fix-missing
 
 # Basic utils
-apt install -y \
+sudo apt install -y \
     arping \
     binutils \
     binwalk \
@@ -130,17 +130,17 @@ read -p "Do you want to change your pip source list to aliyun mirrors? (Y/N)" -n
 echo    # move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    if [ -f ~/.pip/pip.conf ]; then
+    if [ -f $HOME/.pip/pip.conf ]; then
         echo "You already have pip source list, backing up and creating a new one..."
-        mv ~/.pip/pip.conf ~/.pip/pip.conf.bak
+        mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak
     else
-        mkdir ~/.pip
+        mkdir $HOME/.pip
     fi
 
-    echo "[global]" > ~/.pip/pip.conf
-    echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> ~/.pip/pip.conf
-    echo "[install]" >> ~/.pip/pip.conf
-    echo "trusted-host=mirrors.aliyun.com" >> ~/.pip/pip.conf
+    echo "[global]" > $HOME/.pip/pip.conf
+    echo "index-url = https://mirrors.aliyun.com/pypi/simple/" >> $HOME/.pip/pip.conf
+    echo "[install]" >> $HOME/.pip/pip.conf
+    echo "trusted-host=mirrors.aliyun.com" >> $HOME/.pip/pip.conf
 fi
 
 pip install virtualenvwrapper
@@ -148,4 +148,4 @@ pip install virtualenvwrapper
 ############### Other utils setup ###############
 
 # Install plugin for Vim
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+curl -fLo $HOME/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim

@@ -30,72 +30,72 @@ pip install --force-reinstall \
     typing-extensions \
     unicorn \
 
-ln -sf /usr/bin/ipython3 /usr/bin/ipython
+sudo ln -sf /usr/bin/ipython3 /usr/bin/ipython
 
 ############### Tools download from web ###############
 
 # pwn-gdb plugins
-git clone https://github.com/hugsy/gef /opt/gef
-git clone --recurse-submodules https://github.com/pwndbg/pwndbg /opt/pwndbg
-git clone https://github.com/jerdna-regeiz/splitmind /opt/splitmind
+sudo git clone https://github.com/hugsy/gef /opt/gef
+sudo git clone --recurse-submodules https://github.com/pwndbg/pwndbg /opt/pwndbg
+sudo git clone https://github.com/jerdna-regeiz/splitmind /opt/splitmind
 
 # qemu
-apt install -y ninja-build pkg-config zlib1g-dev libglib2.0-dev libpixman-1-dev libfdt-dev 
-git clone https://gitlab.com/qemu-project/qemu.git /opt/qemu
+sudo apt install -y ninja-build pkg-config zlib1g-dev libglib2.0-dev libpixman-1-dev libfdt-dev 
+sudo git clone https://gitlab.com/qemu-project/qemu.git /opt/qemu
 cd /opt/qemu
-git submodule init
-git submodule update --recursive
-./configure
-make -j $(nproc)
-make install
+sudo git submodule init
+sudo git submodule update --recursive
+sudo ./configure
+sudo make -j $(nproc)
+sudo make install
 
 # aflplusplus
-git clone https://github.com/aflplusplus/aflplusplus /opt/aflplusplus
+sudo git clone https://github.com/aflplusplus/aflplusplus /opt/aflplusplus
 cd /opt/aflplusplus
-make distrib
-make install
+sudo make distrib
+sudo make install
 
 # capstone
-git clone https://github.com/aquynh/capstone /opt/capstone
+sudo git clone https://github.com/aquynh/capstone /opt/capstone
 cd /opt/capstone
-./make.sh
-./make.sh install
+sudo ./make.sh
+sudo ./make.sh install
 
 # main_arena
-wget https://raw.githubusercontent.com/bash-c/main_arena_offset/master/main_arena -O /usr/bin/main_arena
-chmod +x /usr/bin/main_arena
+sudo wget https://raw.githubusercontent.com/bash-c/main_arena_offset/master/main_arena -O /usr/bin/main_arena
+sudo chmod +x /usr/bin/main_arena
 
 # one_gadget
-gem install one_gadget
+sudo gem install one_gadget
 
 # radare2
-git clone https://github.com/radareorg/radare2 /opt/radare2
+sudo git clone https://github.com/radareorg/radare2 /opt/radare2
 cd /opt/radare2
-sys/install.sh
+sudo sys/install.sh
 
 # rappel
-git clone https://github.com/yrp604/rappel /opt/rappel
+sudo git clone https://github.com/yrp604/rappel /opt/rappel
 cd /opt/rappel
-make
-cp bin/rappel /usr/bin/rappel
+sudo make
+sudo cp bin/rappel /usr/bin/rappel
 
 # rp++
-wget https://github.com/0vercl0k/rp/releases/download/v2.0.2/rp-lin-x64 -O /usr/bin/rp++
-chmod +x /usr/bin/rp++
+sudo wget https://github.com/0vercl0k/rp/releases/download/v2.0.2/rp-lin-x64 -O /usr/bin/rp++
+sudo chmod +x /usr/bin/rp++
 
 # seccomp-tools
-gem install seccomp-tools
+sudo gem install seccomp-tools
 
 # tcpdump
-git clone https://github.com/the-tcpdump-group/tcpdump /opt/tcpdump
+sudo git clone https://github.com/the-tcpdump-group/tcpdump /opt/tcpdump
 cd /opt/tcpdump
-./configure
-make install
+sudo ./configure
+sudo make install
 
 ############### More libraries for other architecture ###############
 
 # arm & mips libraries
-apt install -y \
+sudo apt install -y \
     libc6-arm64-cross \
     libc6-armel-cross \
     libc6-armhf-cross \
@@ -113,7 +113,7 @@ apt install -y \
     libc6-mipsn32-mipsel-cross
 
 # binutils
-apt install -y \
+sudo apt install -y \
     binutils-mips-linux-gnu-dbg/bionic-security \
     binutils-mipsel-linux-gnu-dbg/bionic-security \
     binutils-mips64-linux-gnuabi64-dbg/bionic-security \
