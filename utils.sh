@@ -156,7 +156,6 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 rm get-docker.sh
 # Add to group
-sudo groupadd docker
 sudo usermod -aG docker $USER
 newgrp docker
 newgrp $USER
