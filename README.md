@@ -1,4 +1,4 @@
-# flint
+# Flint
 
 *"Ignite the Spark of Efficiency"*
 
