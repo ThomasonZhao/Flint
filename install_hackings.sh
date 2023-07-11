@@ -4,6 +4,8 @@ pip3 install \
     pwntools \
     ropper \
     numpy \
+    scapy \
+    ipython \
     pycryptodome
 
 curl -fsSL https://get.docker.com | sh
