@@ -11,4 +11,4 @@ vim -c ':PlugInstall' \
 # Install dependency of YouCompleteMe
 sudo apt install build-essential cmake vim-nox python3-dev
 sudo apt install mono-complete golang nodejs default-jdk npm
-(cd ~/.vim/bundle/YouCompleteMe && python3 install.py --all)
+(cd ~/.vim/plugged/youcompleteme/ && python3 install.py --all)
