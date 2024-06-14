@@ -1,2 +1,2 @@
-wget -O ~/.gdbinit-gef.py -q https://github.com/hugsy/gef/raw/dev/gef.py
+wget -O ~/.gdbinit-gef.py -q https://gef.blah.cat/py
 cp ./.gdbinit ~/.gdbinit

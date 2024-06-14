@@ -8,7 +8,6 @@ sudo apt-get install -y \
     automake \
     git \
     cmake \
-    netcat \
     net-tools \
     wget \
     curl \
@@ -22,7 +21,10 @@ sudo apt-get install -y \
     strace \
     python3 \
     python3-pip \
+    python3-virtualenv \
+    python3-virtualenvwrapper \
     ipython3 \
     tmux \
+    btop \
 
-python3 -m pip install virtualenv virtualenvwrapper --break-system-packages
+# python3 -m pip install virtualenv virtualenvwrapper --break-system-packages

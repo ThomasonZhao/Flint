@@ -1,12 +1,11 @@
 # Common python hacking libs
-pip3 install \
+pip install \
     angr \
     pwntools \
     ropper \
     numpy \
     scapy \
-    ipython \
-    pycryptodome
+    pycryptodome \
 
 # Install docker
 curl -fsSL https://get.docker.com | sh

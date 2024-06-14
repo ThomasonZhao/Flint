@@ -120,11 +120,3 @@ fi
 
 alias python='python3'
 alias ipython='ipython3'
-
-# export PATH for python pip
-export PATH=~/.local/bin:$PATH
-
-# python virtualenv
-export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-export WORKON_HOME=$HOME/.virtualenvs
-source ~/.local/bin/virtualenvwrapper.sh
