@@ -26,5 +26,6 @@ sudo apt-get install -y \
     ipython3 \
     tmux \
     btop \
+    tree \
 
 # python3 -m pip install virtualenv virtualenvwrapper --break-system-packages
