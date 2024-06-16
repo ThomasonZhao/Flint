@@ -6,6 +6,7 @@ pip install \
     numpy \
     scapy \
     pycryptodome \
+    setuptools \
 
 # Install docker
 curl -fsSL https://get.docker.com | sh

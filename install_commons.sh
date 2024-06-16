@@ -19,6 +19,7 @@ sudo apt-get install -y \
     patchelf \
     ltrace \
     strace \
+    qemu-system \
     python3 \
     python3-pip \
     python3-virtualenv \
@@ -27,5 +28,3 @@ sudo apt-get install -y \
     tmux \
     btop \
     tree \
-
-# python3 -m pip install virtualenv virtualenvwrapper --break-system-packages
