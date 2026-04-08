@@ -1,0 +1,14 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+service_tier = "fast"
+[projects."/Users/thomason"]
+trust_level = "trusted"
+
+[projects."/Users/thomason/Dev/Stanford-CS240LX-EmbOS"]
+trust_level = "trusted"
+
+[projects."/Users/thomason/Documents/Thomason Zhao/10-Academics/Stanford/Courses/2026-Spring/CS349D/Papers"]
+trust_level = "trusted"
+
+[projects."/Users/thomason/Dev/Flint"]
+trust_level = "trusted"
