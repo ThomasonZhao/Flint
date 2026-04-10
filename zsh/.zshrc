@@ -112,10 +112,7 @@ typeset -U path PATH
 
 for dir in \
     "$HOME/.local/bin" \
-    "$HOME/bin" \
-    "$HOME/.cargo/bin" \
-    "$HOME/go/bin" \
-    "$HOME/.krew/bin"
+    "/opt/homebrew/bin"
 do
     [[ -d "$dir" ]] && path=("$dir" $path)
 done
