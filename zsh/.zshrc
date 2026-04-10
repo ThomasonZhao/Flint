@@ -378,6 +378,11 @@ if command -v bat &>/dev/null; then
     alias cat='bat --paging=never --style=plain'
 fi
 
+# iTerm2 shell integration (command marks, imgcat, it2api, etc.)
+if [[ -f ~/.iterm2_shell_integration.zsh ]]; then
+    source ~/.iterm2_shell_integration.zsh
+fi
+
 
 # ------------------------------------------------------------
 # Local overrides
@@ -389,10 +394,5 @@ fi
 #   - per-machine PATH additions
 #   - temporary experiments
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
-
-# ------------------------------------------------------------
-# Personal Stuff
-# ------------------------------------------------------------
-export CS240LX_2026_PATH=/Users/thomason/Dev/Stanford-CS240LX-EmbOS
 
 true  # Ensure clean exit code
