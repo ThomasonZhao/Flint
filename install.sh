@@ -136,17 +136,20 @@ stow_packages() {
     cd "$DOTFILES_DIR"
     for pkg in "${PACKAGES[@]}"; do
         if [[ -d "$pkg" ]]; then
-            # --adopt moves existing files into the repo, then symlinks.
-            # git restore afterwards ensures the repo version wins.
-            stow -v --adopt -t "$HOME" "$pkg"
+            # Stow without --adopt first. If it fails due to existing
+            # files, use --adopt to pull them in, then restore repo versions.
+            if ! stow -v -t "$HOME" "$pkg" 2>/dev/null; then
+                # --adopt moves existing home files into the repo, then symlinks.
+                stow -v --adopt -t "$HOME" "$pkg"
+                # Restore only tracked files that --adopt overwrote,
+                # leaving uncommitted (new) repo content untouched.
+                git -C "$DOTFILES_DIR" checkout HEAD -- "$pkg" 2>/dev/null || true
+            fi
             ok "$pkg"
         else
             skip "$pkg (directory not found)"
         fi
     done
-    # --adopt may overwrite repo files with existing home versions.
-    # Reset to ensure the repo version is the source of truth.
-    git -C "$DOTFILES_DIR" checkout HEAD -- .
 }
 
 # ── Main ──────────────────────────────────────────────────────
