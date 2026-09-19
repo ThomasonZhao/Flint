@@ -52,7 +52,9 @@ set breakindent               " preserve indent in wrapped lines
 
 " ── Backspace / Clipboard ────────────────────────────────────
 set backspace=indent,eol,start  " backspace works as expected
-set clipboard=unnamed           " yank/paste uses system clipboard
+if has('clipboard')
+    set clipboard=unnamed
+endif
 
 " ── Performance ───────────────────────────────────────────────
 set lazyredraw                " don't redraw during macros
@@ -61,16 +63,21 @@ set updatetime=250            " faster CursorHold (default 4000)
 set timeoutlen=500            " mapping timeout (ms)
 
 " ── Persistent undo ───────────────────────────────────────────
+" Keep recovery data private and away from edited files.
+let s:state = (empty($XDG_STATE_HOME) ? $HOME . '/.local/state' : $XDG_STATE_HOME) . '/vim'
+for s:dir in ['undo', 'swap', 'backup']
+    call mkdir(s:state . '/' . s:dir, 'p', 0700)
+endfor
+let &directory = s:state . '/swap//'
+let &backupdir = s:state . '/backup//'
+let &viminfofile = s:state . '/viminfo'
 if has('persistent_undo')
     set undofile
-    set undodir=~/.vim/undodir
-    silent! call mkdir($HOME . '/.vim/undodir', 'p')
+    let &undodir = s:state . '/undo//'
 endif
-
-" ── No swap/backup clutter ────────────────────────────────────
-set noswapfile
+set swapfile
 set nobackup
-set nowritebackup
+set writebackup
 
 " ── Leader key ────────────────────────────────────────────────
 let mapleader = ' '           " Space as leader — easy to reach
@@ -127,3 +134,9 @@ let g:netrw_winsize = 25      " 25% width
 " Use a built-in scheme that looks good in most terminals
 set background=dark
 silent! colorscheme retrobox
+
+" Private machine-specific additions are always last.
+let s:local = (empty($XDG_CONFIG_HOME) ? $HOME . '/.config' : $XDG_CONFIG_HOME) . '/flint/local/vimrc'
+if filereadable(s:local)
+    execute 'source ' . fnameescape(s:local)
+endif

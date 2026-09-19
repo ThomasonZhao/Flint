@@ -1,0 +1,185 @@
+# Interactive shell defaults. Private customizations load near the end.
+# Keep startup local: no network requests or automatic updates.
+
+# Paths and environment -------------------------------------------------------
+
+export XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+export XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
+export XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
+export XDG_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
+
+# Deduplicate PATH while giving personal tools priority.
+typeset -U path PATH
+for dir in /opt/homebrew/bin /opt/homebrew/sbin "$HOME/.local/bin"; do
+    [[ -d $dir ]] && path=("$dir" $path)
+done
+
+export EDITOR=vim
+export VISUAL=vim
+export PAGER=less
+export LESS=-FRX
+
+# History and completion data stay out of the home directory.
+mkdir -p "$XDG_CACHE_HOME/zsh" "$XDG_STATE_HOME/zsh"
+HISTFILE=$XDG_STATE_HOME/zsh/history
+HISTSIZE=50000
+SAVEHIST=50000
+
+# Oh My Zsh -------------------------------------------------------------------
+
+# Reuse legacy installations; new installs live under XDG_DATA_HOME.
+export ZSH=$XDG_DATA_HOME/oh-my-zsh
+[[ -d $ZSH ]] || ZSH=$HOME/.oh-my-zsh
+export ZSH_CACHE_DIR=$XDG_CACHE_HOME/oh-my-zsh
+ZSH_COMPDUMP=$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION
+ZSH_THEME=robbyrussell
+# Updates are explicit so opening a terminal never waits for Git.
+zstyle ':omz:update' mode disabled
+plugins=(
+    git      # Familiar Git aliases, including gst, gco, and gp.
+    sudo     # Double Escape prepends sudo.
+    extract  # One command for common archive formats.
+)
+
+if [[ -r $ZSH/oh-my-zsh.sh ]]; then
+    source "$ZSH/oh-my-zsh.sh"
+else
+    # Remain usable before optional dependencies are installed.
+    autoload -Uz compinit
+    compinit -d "$ZSH_COMPDUMP"
+    PROMPT='%F{green}%n@%m%f %F{blue}%~%f %# '
+fi
+
+# Shell behavior and completion -----------------------------------------------
+
+# Shared, deduplicated history; a leading space keeps a command out of history.
+setopt HIST_IGNORE_ALL_DUPS HIST_FIND_NO_DUPS HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS SHARE_HISTORY
+# SHARE_HISTORY already appends incrementally; do not combine the two modes.
+unsetopt INC_APPEND_HISTORY
+
+setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT
+setopt INTERACTIVE_COMMENTS NO_BEEP
+unsetopt CORRECT
+bindkey -e  # Emacs-style command-line editing.
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh"
+
+# Aliases ---------------------------------------------------------------------
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ll='ls -lah'
+alias la='ls -A'
+
+if (( $+commands[eza] )); then
+    # Avoid font dependencies and per-file Git status work during listings.
+    alias ls='eza --color=auto'
+    alias ll='eza -lah'
+    alias la='eza -a'
+    alias tree='eza --tree'
+fi
+
+# Preserve interactive safeguards without changing commands used in scripts.
+alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -i'
+
+alias zshrc='${EDITOR:-vim} "$XDG_CONFIG_HOME/flint/local/zshrc"'
+alias reload='source ~/.zshrc'
+alias sshconfig='${EDITOR:-vim} "$XDG_CONFIG_HOME/flint/local/ssh.conf"'
+
+alias gpuo='git push -u origin HEAD'
+alias glog5='git log --oneline -5'
+
+alias python='python3'
+alias py='python3'
+alias pip='python3 -m pip'
+
+alias d='docker'
+alias dc='docker compose'
+alias k='kubectl'
+
+# Small helpers ---------------------------------------------------------------
+
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Jump to the current worktree root.
+croot() {
+    local root
+    root=$(git rev-parse --show-toplevel) && cd "$root"
+}
+
+serve() {
+    python3 -m http.server "${1:-8000}"
+}
+
+mkvenv() {
+    python3 -m venv "${1:-.venv}" && source "${1:-.venv}/bin/activate"
+}
+
+# Activate the nearest virtual environment, searching parent directories.
+activate() {
+    local dir=$PWD
+
+    while true; do
+        if [[ -f $dir/.venv/bin/activate ]]; then
+            source "$dir/.venv/bin/activate"
+            return
+        elif [[ -f $dir/venv/bin/activate ]]; then
+            source "$dir/venv/bin/activate"
+            return
+        fi
+        [[ $dir == / ]] && break
+        dir=${dir:h}
+    done
+
+    print -u2 'No .venv or venv found'
+    return 1
+}
+
+# Tool integrations -----------------------------------------------------------
+
+# Ctrl-R: history, Ctrl-T: files, Alt-C: directories.
+# Integration files work with older Ubuntu fzf versions too.
+for dir in \
+    /opt/homebrew/opt/fzf/shell \
+    /usr/local/opt/fzf/shell \
+    /usr/share/doc/fzf/examples
+do
+    if [[ -o zle && -r $dir/key-bindings.zsh ]]; then
+        source "$dir/key-bindings.zsh"
+        [[ -r $dir/completion.zsh ]] && source "$dir/completion.zsh"
+        break
+    fi
+done
+
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+if (( $+commands[fd] )); then
+    export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
+elif (( $+commands[fdfind] )); then
+    # Ubuntu packages fd under the fdfind executable name.
+    export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --exclude .git'
+fi
+[[ -n $FZF_DEFAULT_COMMAND ]] && export FZF_CTRL_T_COMMAND=$FZF_DEFAULT_COMMAND
+
+# Learn directory usage for the z command.
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+
+# Private overrides and final plugins -----------------------------------------
+
+[[ -r $XDG_CONFIG_HOME/flint/local/zshrc ]] && source "$XDG_CONFIG_HOME/flint/local/zshrc"
+# Compatibility for machines that have not migrated the old override file.
+[[ -r $HOME/.zshrc.local ]] && source "$HOME/.zshrc.local"
+
+# Highlighting must load after widgets and local key bindings.
+for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+    [[ -r $ZSH/custom/plugins/$plugin/$plugin.zsh ]] && source "$ZSH/custom/plugins/$plugin/$plugin.zsh"
+done
+# Optional files and plugins being absent must not make startup fail.
+true

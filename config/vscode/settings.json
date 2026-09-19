@@ -1,0 +1,28 @@
+{
+    "workbench.colorTheme": "Dark Modern",
+    "workbench.preferredLightColorTheme": "Dark Modern",
+    "workbench.preferredDarkColorTheme": "Dark Modern",
+    "workbench.iconTheme": "vscode-icons",
+    "vsicons.dontShowNewVersionMessage": true,
+    "editor.fontSize": 14,
+    "editor.rulers": [80],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.renderWhitespace": "all",
+    "editor.stickyScroll.enabled": false,
+    "files.autoSave": "afterDelay",
+    "terminal.integrated.fontSize": 15,
+    "terminal.integrated.initialHint": false,
+    "vim.useSystemClipboard": true,
+    "git.autofetch": true,
+    "git.openRepositoryInParentFolders": "always",
+    "remote.SSH.lockfilesInTmp": true,
+    "remote.SSH.showLoginTerminal": true,
+    "latex-workshop.latex.autoBuild.run": "never",
+    "makefile.configureOnOpen": false,
+    "cmake.configureOnOpen": false,
+    "rust-analyzer.workspace.symbol.search.scope": "workspace_and_dependencies",
+    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 0}",
+    "[python]": {
+        "editor.formatOnType": true
+    }
+}

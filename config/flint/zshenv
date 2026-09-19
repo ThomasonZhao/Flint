@@ -1,0 +1,9 @@
+# Refresh forwarding before interactive logins or `ssh host command` attach tmux.
+[[ -r ${XDG_CONFIG_HOME:-$HOME/.config}/flint/ssh-agent.zsh ]] &&
+    source "${XDG_CONFIG_HOME:-$HOME/.config}/flint/ssh-agent.zsh"
+
+# Noninteractive, machine-specific environment settings belong here.
+[[ -r ${XDG_CONFIG_HOME:-$HOME/.config}/flint/local/zshenv ]] &&
+    source "${XDG_CONFIG_HOME:-$HOME/.config}/flint/local/zshenv"
+
+true

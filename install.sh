@@ -1,177 +1,230 @@
 #!/usr/bin/env bash
-# Flint — dotfile bootstrap
-# Usage: ./install.sh           (full install)
-#        ./install.sh --stow    (stow only, skip tool installation)
+# Flint bootstrap: preserve private settings, back up conflicts, then link configs.
+# Package and extension installation are opt-in; running sessions are left alone.
 set -euo pipefail
 
-DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
-STOW_ONLY=false
-[[ "${1:-}" == "--stow" ]] && STOW_ONLY=true
+# Options ---------------------------------------------------------------------
 
-# ── Helpers ───────────────────────────────────────────────────
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+packages=false
+desktop=false
+extensions=false
 
-info()  { printf '\033[1;34m::\033[0m %s\n' "$*"; }
-ok()    { printf '\033[1;32m✓\033[0m  %s\n' "$*"; }
-skip()  { printf '\033[1;33m→\033[0m  %s (already installed)\n' "$*"; }
+for arg in "$@"; do
+    case "$arg" in
+        --packages) packages=true ;;
+        --desktop)
+            desktop=true
+            packages=true
+            ;;
+        --extensions) extensions=true ;;
+        --stow) ;; # Compatibility with the old link-only invocation.
+        --help)
+            printf '%s\n' 'Usage: ./install.sh [--packages] [--desktop] [--extensions]'
+            exit 0
+            ;;
+        *)
+            printf 'Unknown option: %s\n' "$arg" >&2
+            exit 2
+            ;;
+    esac
+done
 
-need() {
-    if ! command -v "$1" &>/dev/null; then
-        return 0  # needs install
-    fi
-    return 1      # already present
-}
+# SSH includes use a fixed path for portability across non-shell applications.
+if [[ ${XDG_CONFIG_HOME:-$HOME/.config} != "$HOME/.config" ]]; then
+    printf '%s\n' 'Flint currently requires XDG_CONFIG_HOME=$HOME/.config.' >&2
+    exit 1
+fi
 
-# ── Homebrew ──────────────────────────────────────────────────
+# Optional dependencies -------------------------------------------------------
 
-install_homebrew() {
-    if need brew; then
-        info "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        # Make brew available in the current session
-        if [[ -f /opt/homebrew/bin/brew ]]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        elif [[ -f /usr/local/bin/brew ]]; then
-            eval "$(/usr/local/bin/brew shellenv)"
-        fi
-        ok "Homebrew"
-    else
-        skip "Homebrew"
-    fi
-}
-
-# ── Homebrew packages ─────────────────────────────────────────
-
-BREW_PACKAGES=(
-    stow        # dotfile symlink manager
-    fzf         # fuzzy finder
-    bat         # cat with syntax highlighting
-    fd          # fast find alternative
-    eza         # modern ls
-    zoxide      # smarter cd
-    htop        # process viewer
-    tlrc        # tldr client
-    ripgrep     # fast grep
-)
-
-install_brew_packages() {
-    info "Installing Homebrew packages..."
-    local installed
-    installed="$(brew list --formula -1 2>/dev/null)"
-    for pkg in "${BREW_PACKAGES[@]}"; do
-        if echo "$installed" | grep -qx "$pkg"; then
-            skip "$pkg"
-        else
-            brew install "$pkg"
-            ok "$pkg"
-        fi
-    done
-
-    # fzf key bindings and completion (idempotent)
-    if [[ ! -f ~/.fzf.zsh ]]; then
-        "$(brew --prefix)/opt/fzf/install" --all --no-bash --no-fish
-        ok "fzf shell integration"
-    fi
-}
-
-# ── Oh My Zsh ─────────────────────────────────────────────────
-
-install_oh_my_zsh() {
-    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-        info "Installing Oh My Zsh..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        ok "Oh My Zsh"
-    else
-        skip "Oh My Zsh"
-    fi
-}
-
-# ── Oh My Zsh custom plugins ─────────────────────────────────
-
-install_omz_plugins() {
-    info "Installing Oh My Zsh custom plugins..."
-    local custom_dir="$HOME/.oh-my-zsh/custom"
-    local -a names urls
-    names=(zsh-autosuggestions   zsh-syntax-highlighting   you-should-use   zsh-bat)
-    urls=(
-        "https://github.com/zsh-users/zsh-autosuggestions"
-        "https://github.com/zsh-users/zsh-syntax-highlighting"
-        "https://github.com/MichaelAquilina/zsh-you-should-use"
-        "https://github.com/fdellwing/zsh-bat"
-    )
-    local i
-    for (( i=0; i<${#names[@]}; i++ )); do
-        local dest="$custom_dir/plugins/${names[$i]}"
-        if [[ -d "$dest" ]]; then
-            skip "${names[$i]}"
-        else
-            git clone --depth 1 "${urls[$i]}" "$dest"
-            ok "${names[$i]}"
-        fi
-    done
-}
-
-# ── iTerm2 shell integration ─────────────────────────────────
-
-install_iterm2_integration() {
-    if [[ -f "$HOME/.iterm2_shell_integration.zsh" ]]; then
-        skip "iTerm2 shell integration"
-    else
-        info "Installing iTerm2 shell integration..."
-        curl -fsSL https://iterm2.com/shell_integration/zsh -o "$HOME/.iterm2_shell_integration.zsh"
-        ok "iTerm2 shell integration"
-    fi
-}
-
-# ── Stow dotfiles ────────────────────────────────────────────
-
-PACKAGES=(
-    zsh
-    git
-    vim
-    tmux
-)
-
-stow_packages() {
-    info "Stowing packages from $DOTFILES_DIR → \$HOME"
-    cd "$DOTFILES_DIR"
-    for pkg in "${PACKAGES[@]}"; do
-        if [[ -d "$pkg" ]]; then
-            # Stow without --adopt first. If it fails due to existing
-            # files, use --adopt to pull them in, then restore repo versions.
-            if ! stow -v -t "$HOME" "$pkg" 2>/dev/null; then
-                # --adopt moves existing home files into the repo, then symlinks.
-                stow -v --adopt -t "$HOME" "$pkg"
-                # Restore only tracked files that --adopt overwrote,
-                # leaving uncommitted (new) repo content untouched.
-                git -C "$DOTFILES_DIR" checkout HEAD -- "$pkg" 2>/dev/null || true
+if $packages; then
+    case "$(uname -s)" in
+        Darwin)
+            if ! command -v brew >/dev/null; then
+                printf '%s\n' 'Install Homebrew from https://brew.sh, then rerun.' >&2
+                exit 1
             fi
-            ok "$pkg"
-        else
-            skip "$pkg (directory not found)"
+            if $desktop; then
+                brew bundle --file="$ROOT/Brewfile"
+            else
+                brew install git zsh vim tmux fzf ripgrep fd bat eza zoxide python
+            fi
+            ;;
+        Linux)
+            if ! command -v apt-get >/dev/null; then
+                printf '%s\n' 'Install dependencies manually on non-apt Linux.' >&2
+                exit 1
+            fi
+            sudo apt-get update
+            sudo apt-get install -y git zsh vim tmux fzf ripgrep fd-find bat zoxide python3 ncurses-term
+            if $desktop; then
+                printf '%s\n' 'Install VS Code, Ghostty, and Obsidian from their official Linux downloads.'
+            fi
+            ;;
+        *)
+            printf '%s\n' 'Unsupported operating system.' >&2
+            exit 1
+            ;;
+    esac
+
+    # Reuse existing Oh My Zsh installs; only fresh installs use the XDG path.
+    omz="${XDG_DATA_HOME:-$HOME/.local/share}/oh-my-zsh"
+    if [[ ! -d $omz && ! -d $HOME/.oh-my-zsh ]]; then
+        git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$omz"
+    fi
+    [[ -d $omz ]] || omz="$HOME/.oh-my-zsh"
+    for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
+        [[ -d $omz/custom/plugins/$plugin ]] ||
+            git clone --depth 1 "https://github.com/zsh-users/$plugin.git" "$omz/custom/plugins/$plugin"
+    done
+fi
+if ! command -v python3 >/dev/null; then
+    printf '%s\n' 'python3 is required; use --packages.' >&2
+    exit 1
+fi
+
+# Backups and safe linking ----------------------------------------------------
+
+umask 077
+config="$HOME/.config/flint"
+local_dir="$config/local"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/flint"
+
+mkdir -p "$local_dir" "$state/backups"
+backup="$(mktemp -d "$state/backups/install.XXXXXXXX")"
+chmod 700 "$local_dir"
+
+# Existing home symlinks may already point at edited repository files.
+# Keep the committed baseline too, so their old contents remain recoverable.
+if git -C "$ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
+    git -C "$ROOT" archive HEAD -o "$backup/repository-HEAD.tar"
+fi
+
+# Save replaced files with their original home-relative path.
+save() {
+    local dest="$1"
+    local relative="${1#"$HOME"/}"
+
+    if [[ -e $dest || -L $dest ]]; then
+        mkdir -p "$backup/$(dirname "$relative")"
+        cp -pP "$dest" "$backup/$relative"
+    fi
+}
+
+link() {
+    local src="$1"
+    local dest="$2"
+
+    [[ -L $dest && $(readlink "$dest") == "$src" ]] && return 0
+    if [[ -d $dest && ! -L $dest ]]; then
+        printf 'Refusing to replace directory: %s\n' "$dest" >&2
+        exit 1
+    fi
+    save "$dest"
+    mkdir -p "$(dirname "$dest")"
+    ln -sfn "$src" "$dest"
+}
+
+# Private settings and history ------------------------------------------------
+
+# Preserve local overrides before replacing any entry points.
+if [[ -f $HOME/.zshrc.local ]]; then
+    if [[ -e $local_dir/zshrc ]]; then
+        printf '%s\n' 'Both local zsh files exist; leaving ~/.zshrc.local as a compatibility override.'
+    else
+        cp -p "$HOME/.zshrc.local" "$local_dir/zshrc"
+        save "$HOME/.zshrc.local"
+        mv "$HOME/.zshrc.local" "$backup/migrated-zshrc.local"
+    fi
+fi
+
+[[ -e $local_dir/zshrc ]] || cp "$ROOT/config/examples/zshrc" "$local_dir/zshrc"
+if [[ -f $HOME/.zshenv && ! -L $HOME/.zshenv && ! -e $local_dir/zshenv ]]; then
+    cp -p "$HOME/.zshenv" "$local_dir/zshenv"
+fi
+if [[ ! -e $local_dir/ssh.conf ]]; then
+    if [[ -f $HOME/.ssh/config && ! -L $HOME/.ssh/config ]]; then
+        cp -p "$HOME/.ssh/config" "$local_dir/ssh.conf"
+    else
+        cp "$ROOT/config/examples/ssh.conf" "$local_dir/ssh.conf"
+    fi
+fi
+
+# Preserve a real Git config; old Flint symlinks already have a shared identity.
+if [[ -f $HOME/.gitconfig && ! -L $HOME/.gitconfig && ! -e $local_dir/gitconfig ]]; then
+    cp -p "$HOME/.gitconfig" "$local_dir/gitconfig"
+fi
+
+# Snapshot history, but keep the old file for shells that are still running.
+mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
+if [[ -f $HOME/.zsh_history && ! -e ${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history ]]; then
+    cp -p "$HOME/.zsh_history" "${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+fi
+
+# Shared config links ---------------------------------------------------------
+
+for file in "$ROOT"/config/flint/*; do
+    link "$file" "$config/$(basename "$file")"
+done
+
+# Link application entry points directly; no duplicate wrapper files in the repo.
+link "$ROOT/config/flint/zshrc" "$HOME/.zshrc"
+link "$ROOT/config/flint/zshenv" "$HOME/.zshenv"
+link "$ROOT/config/flint/gitconfig" "$HOME/.gitconfig"
+link "$ROOT/config/flint/tmux.conf" "$HOME/.tmux.conf"
+link "$ROOT/config/flint/vimrc" "$HOME/.vimrc"
+link "$ROOT/config/flint/ssh.conf" "$HOME/.ssh/config"
+
+# Git ignore ------------------------------------------------------------------
+
+# Git ignore is additive: retain private patterns in a separate local file.
+if [[ -f $HOME/.config/git/ignore && ! -L $HOME/.config/git/ignore && ! -e $local_dir/gitignore ]]; then
+    cp -p "$HOME/.config/git/ignore" "$local_dir/gitignore"
+fi
+save "$HOME/.config/git/ignore"
+mkdir -p "$HOME/.config/git"
+# Do not follow an old symlink when writing a generated file.
+ignore_tmp="$(mktemp "$HOME/.config/git/ignore.XXXXXXXX")"
+cat "$ROOT/config/flint/gitignore" > "$ignore_tmp"
+[[ ! -f $local_dir/gitignore ]] || cat "$local_dir/gitignore" >> "$ignore_tmp"
+mv -f "$ignore_tmp" "$HOME/.config/git/ignore"
+
+# Ghostty ---------------------------------------------------------------------
+
+# Link Ghostty's XDG file; preserve native macOS overrides locally.
+ghost="$HOME/.config/ghostty/config"
+if [[ $(uname -s) == Darwin ]]; then
+    native="$HOME/Library/Application Support/com.mitchellh.ghostty"
+    for file in "$native/config" "$native/config.ghostty"; do
+        if [[ -s $file && ! -L $file && ! -e $local_dir/ghostty.conf ]]; then
+            cp -p "$file" "$local_dir/ghostty.conf"
         fi
     done
-}
+    # The native location loads after XDG; use one shared source in both.
+    link "$ROOT/config/flint/ghostty.conf" "$native/config"
+    link "$ROOT/config/flint/ghostty.conf" "$native/config.ghostty"
+fi
+if [[ -s $ghost && ! -L $ghost && ! -e $local_dir/ghostty.conf ]]; then
+    cp -p "$ghost" "$local_dir/ghostty.conf"
+fi
+link "$ROOT/config/flint/ghostty.conf" "$ghost"
+link "$ROOT/config/flint/ghostty.conf" "$HOME/.config/ghostty/config.ghostty"
 
-# ── Main ──────────────────────────────────────────────────────
+# VS Code and private file permissions ----------------------------------------
 
-main() {
-    echo
-    info "Flint — dotfile bootstrap"
-    echo
-
-    if [[ "$STOW_ONLY" == true ]]; then
-        stow_packages
-    else
-        install_homebrew
-        install_brew_packages
-        install_oh_my_zsh
-        install_omz_plugins
-        install_iterm2_integration
-        stow_packages
+python3 "$ROOT/scripts/vscode.py" "$backup"
+for file in "$local_dir"/*; do
+    [[ ! -f $file || -L $file ]] || chmod 600 "$file"
+done
+if $extensions; then
+    if ! command -v code >/dev/null; then
+        printf '%s\n' 'Install the code command in PATH first.' >&2
+        exit 1
     fi
+    while IFS= read -r extension; do
+        [[ -z $extension || $extension == \#* ]] || code --install-extension "$extension"
+    done < "$ROOT/config/vscode/extensions.txt"
+fi
 
-    echo
-    info "Done. Restart your shell or run: source ~/.zshrc"
-}
-
-main
+printf 'Installed. Backup: %s\nOpen a new terminal; running sessions were not reloaded.\n' "$backup"

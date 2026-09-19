@@ -1,0 +1,12 @@
+# Core workflow; enable language extensions per workspace/profile.
+ms-vscode-remote.remote-ssh
+vscodevim.vim
+vscode-icons-team.vscode-icons
+ms-python.python
+ms-python.vscode-pylance
+ms-python.black-formatter
+ms-toolsai.jupyter
+rust-lang.rust-analyzer
+ms-vscode.cpptools
+ms-vscode.cmake-tools
+james-yu.latex-workshop

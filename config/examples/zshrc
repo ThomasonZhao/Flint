@@ -1,0 +1,4 @@
+# Private file: ~/.config/flint/local/zshrc.
+# Prefer loading tokens from your password manager. If exporting here:
+# export EXAMPLE_API_KEY='...'
+# path=("$HOME/my-tools/bin" $path)

@@ -1,0 +1,5 @@
+# Private overrides and state must never be committed.
+local/
+*.local
+.DS_Store
+__pycache__/
