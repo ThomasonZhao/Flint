@@ -192,23 +192,20 @@ mv -f "$ignore_tmp" "$HOME/.config/git/ignore"
 
 # Ghostty ---------------------------------------------------------------------
 
-# Link Ghostty's XDG file; preserve native macOS overrides locally.
-ghost="$HOME/.config/ghostty/config"
+# Ghostty loads both XDG and macOS configs. Keep only one entry point.
+# Archive old locations so duplicate loads cannot reintroduce cycle warnings.
+ghostty_legacy=("$HOME/.config/ghostty/config")
 if [[ $(uname -s) == Darwin ]]; then
     native="$HOME/Library/Application Support/com.mitchellh.ghostty"
-    for file in "$native/config" "$native/config.ghostty"; do
-        if [[ -s $file && ! -L $file && ! -e $local_dir/ghostty.conf ]]; then
-            cp -p "$file" "$local_dir/ghostty.conf"
-        fi
-    done
-    # The native location loads after XDG; use one shared source in both.
-    link "$ROOT/config/flint/ghostty.conf" "$native/config"
-    link "$ROOT/config/flint/ghostty.conf" "$native/config.ghostty"
+    ghostty_legacy+=("$native/config" "$native/config.ghostty")
 fi
-if [[ -s $ghost && ! -L $ghost && ! -e $local_dir/ghostty.conf ]]; then
-    cp -p "$ghost" "$local_dir/ghostty.conf"
-fi
-link "$ROOT/config/flint/ghostty.conf" "$ghost"
+for file in "${ghostty_legacy[@]}"; do
+    if [[ -f $file || -L $file ]]; then
+        relative="${file#"$HOME"/}"
+        mkdir -p "$backup/$(dirname "$relative")"
+        mv "$file" "$backup/$relative"
+    fi
+done
 link "$ROOT/config/flint/ghostty.conf" "$HOME/.config/ghostty/config.ghostty"
 
 # VS Code and private file permissions ----------------------------------------

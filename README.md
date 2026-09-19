@@ -17,6 +17,7 @@ Shared settings: `config/flint/` and `config/vscode/`.
 Private settings and secrets: `~/.config/flint/local/` (see `config/examples/`).
 Use `zshrc` or `sshconfig` to edit local overrides.
 For lasting VS Code changes, edit `local/vscode.json` and rerun the installer.
+Ghostty uses `config/flint/ghostty.conf` directly, with no local override.
 
 ## Remote tmux
 
